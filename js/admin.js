@@ -539,7 +539,12 @@ function initEventListeners() {
             document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
             showToast(`User ${full_name} created successfully.`, 'success');
         } catch (err) {
-            showToast('Error: ' + err.message, 'error');
+            console.error('Create user failed:', err);
+            if (err.message && err.message.toLowerCase().includes('rate limit')) {
+                showToast('Email rate limit exceeded! In Supabase Dashboard: go to Authentication -> Providers -> Email and turn OFF "Confirm email" or configure custom SMTP.', 'error');
+            } else {
+                showToast('Error: ' + err.message, 'error');
+            }
         } finally {
             btn.disabled = false;
             btn.textContent = 'Create User';
