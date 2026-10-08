@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration Console – Query Resolver</title>
+    <meta name="description" content="Central administration and configuration console for Query Resolver System.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Lucide Vector Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <div class="app-layout">
+
+        <!-- ==============================================================================
+             ADMIN SIDEBAR NAVIGATION
+             ============================================================================== -->
+        <aside class="app-sidebar" id="app-sidebar">
+            <a href="#dashboard" class="sidebar-brand">
+                <div class="sidebar-logo">QR</div>
+                <div class="sidebar-brand-text">
+                    <div class="sidebar-title" id="sidebar-system-name">Query Resolver</div>
+                    <div class="sidebar-subtitle" id="sidebar-org-name">Admin Console</div>
+                </div>
+            </a>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Overview</div>
+                <a class="nav-item active" data-section="sec-dashboard">
+                    <span class="nav-item-icon"><i data-lucide="layout-dashboard"></i></span>
+                    <span>Dashboard</span>
+                </a>
+                <a class="nav-item" data-section="sec-queries">
+                    <span class="nav-item-icon"><i data-lucide="ticket"></i></span>
+                    <span>Queries</span>
+                </a>
+
+                <div class="nav-section-label">Management</div>
+                <a class="nav-item" data-section="sec-users">
+                    <span class="nav-item-icon"><i data-lucide="users"></i></span>
+                    <span>Users</span>
+                </a>
+                <a class="nav-item" data-section="sec-organization">
+                    <span class="nav-item-icon"><i data-lucide="building-2"></i></span>
+                    <span>Organization</span>
+                </a>
+                <a class="nav-item" data-section="sec-settings">
+                    <span class="nav-item-icon"><i data-lucide="sliders"></i></span>
+                    <span>Settings</span>
+                </a>
+
+                <div class="nav-section-label">Data & Security</div>
+                <a class="nav-item" data-section="sec-database">
+                    <span class="nav-item-icon"><i data-lucide="database"></i></span>
+                    <span>Database Config</span>
+                </a>
+                <a class="nav-item" data-section="sec-audit">
+                    <span class="nav-item-icon"><i data-lucide="shield-check"></i></span>
+                    <span>Audit Logs</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-snippet">
+                    <div class="avatar-initials" id="admin-avatar">A</div>
+                    <div class="user-info">
+                        <div class="user-name" id="admin-name">Administrator</div>
+                        <div class="user-role-badge">Admin</div>
+                    </div>
+                </div>
+                <button type="button" class="icon-btn" id="btn-admin-logout" title="Sign Out">
+                    <i data-lucide="log-out"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ==============================================================================
+             ADMIN MAIN CONTENT AREA
+             ============================================================================== -->
+        <div class="app-main">
+            <!-- Top Navigation Bar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="mobile-nav-toggle" id="btn-mobile-nav"><i data-lucide="menu"></i></button>
+                    <div>
+                        <div class="top-bar-title" id="admin-page-title">Administration</div>
+                        <div class="top-bar-breadcrumb" id="admin-page-breadcrumb">Manage system, users and settings</div>
+                    </div>
+                </div>
+
+                <div class="top-bar-right">
+                    <a href="../app/index.html" class="btn btn-outline btn-sm" style="font-size: 0.8rem;">
+                        <i data-lucide="external-link"></i> Support Panel
+                    </a>
+
+                    <button type="button" class="icon-btn" id="btn-notifications" title="Notifications">
+                        <i data-lucide="bell"></i>
+                    </button>
+
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding-left: 0.5rem; border-left: 1px solid var(--border);">
+                        <div class="avatar-initials" id="topbar-admin-avatar">A</div>
+                        <div style="line-height: 1.2;">
+                            <div style="font-size: 0.8rem; font-weight: 600;" id="topbar-admin-name">Admin</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">Admin</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Admin Content Container -->
+            <main class="content-container">
+
+                <!-- ==================================================================
+                     SECTION 1: ADMIN DASHBOARD (CARDS + METRICS)
+                     ================================================================== -->
+                <section id="sec-dashboard" class="admin-panel active">
+                    <div class="dashboard-welcome">
+                        <div>
+                            <h1>Administration</h1>
+                            <p>Manage your organization, users and system configuration.</p>
+                        </div>
+                    </div>
+
+                    <!-- 6 Modern Overview Cards -->
+                    <div class="admin-overview-grid">
+                        <div class="overview-card">
+                            <div>
+                                <div class="overview-card-icon"><i data-lucide="building-2"></i></div>
+                                <h3 class="overview-card-title">Organization</h3>
+                                <p class="overview-card-desc">Manage company details, support contact, timezone, and live system branding.</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm nav-shortcut" data-target="sec-organization">
+                                Manage →
+                            </button>
+                        </div>
+
+                        <div class="overview-card">
+                            <div>
+                                <div class="overview-card-icon"><i data-lucide="users"></i></div>
+                                <h3 class="overview-card-title">Users</h3>
+                                <p class="overview-card-desc">Add support staff, assign administrator roles, and control account activation.</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm nav-shortcut" data-target="sec-users">
+                                Manage →
+                            </button>
+                        </div>
+
+                        <div class="overview-card">
+                            <div>
+                                <div class="overview-card-icon"><i data-lucide="ticket"></i></div>
+                                <h3 class="overview-card-title">Queries</h3>
+                                <p class="overview-card-desc">Review and monitor all customer queries, temporary workarounds, and ticket volume.</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm nav-shortcut" data-target="sec-queries">
+                                View →
+                            </button>
+                        </div>
+
+                        <div class="overview-card">
+                            <div>
+                                <div class="overview-card-icon"><i data-lucide="database"></i></div>
+                                <h3 class="overview-card-title">Database & Backend</h3>
+                                <p class="overview-card-desc">Configure Supabase credentials, test live cloud connectivity, view table storage, and download backups.</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm nav-shortcut" data-target="sec-database">
+                                Configure →
+                            </button>
+                        </div>
+
+                        <div class="overview-card">
+                            <div>
+                                <div class="overview-card-icon"><i data-lucide="shield-check"></i></div>
+                                <h3 class="overview-card-title">Audit Logs</h3>
+                                <p class="overview-card-desc">Immutable audit stream recording logins, user creations, and ticket status changes.</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm nav-shortcut" data-target="sec-audit">
+                                View →
+                            </button>
+                        </div>
+
+                        <div class="overview-card">
+                            <div>
+                                <div class="overview-card-icon"><i data-lucide="sliders"></i></div>
+                                <h3 class="overview-card-title">System Settings</h3>
+                                <p class="overview-card-desc">Configure default ticket intakes, priorities, and workflow status options.</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm nav-shortcut" data-target="sec-settings">
+                                Configure →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Summary -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title">System Activity Summary</h2>
+                                <p class="card-subtitle">Real-time status across all active organization tickets</p>
+                            </div>
+                        </div>
+
+                        <div class="stats-row" style="margin-bottom: 0;">
+                            <div class="stat-tile">
+                                <div class="stat-tile-top">
+                                    <span class="stat-tile-label">Total Users</span>
+                                    <span class="stat-indicator-dot dot-total"></span>
+                                </div>
+                                <div class="stat-tile-val" id="stat-total-users">0</div>
+                            </div>
+
+                            <div class="stat-tile">
+                                <div class="stat-tile-top">
+                                    <span class="stat-tile-label">Active Users</span>
+                                    <span class="stat-indicator-dot dot-resolved"></span>
+                                </div>
+                                <div class="stat-tile-val" id="stat-active-users">0</div>
+                            </div>
+
+                            <div class="stat-tile">
+                                <div class="stat-tile-top">
+                                    <span class="stat-tile-label">Total Queries</span>
+                                    <span class="stat-indicator-dot dot-total"></span>
+                                </div>
+                                <div class="stat-tile-val" id="stat-total-queries">0</div>
+                            </div>
+
+                            <div class="stat-tile">
+                                <div class="stat-tile-top">
+                                    <span class="stat-tile-label">Open</span>
+                                    <span class="stat-indicator-dot dot-open"></span>
+                                </div>
+                                <div class="stat-tile-val" id="stat-open-queries">0</div>
+                            </div>
+
+                            <div class="stat-tile">
+                                <div class="stat-tile-top">
+                                    <span class="stat-tile-label">In Progress</span>
+                                    <span class="stat-indicator-dot dot-progress"></span>
+                                </div>
+                                <div class="stat-tile-val" id="stat-progress-queries">0</div>
+                            </div>
+
+                            <div class="stat-tile">
+                                <div class="stat-tile-top">
+                                    <span class="stat-tile-label">Temp Resolved</span>
+                                    <span class="stat-indicator-dot dot-resolved"></span>
+                                </div>
+                                <div class="stat-tile-val" id="stat-resolved-queries">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================================================================
+                     SECTION 2: ALL QUERIES
+                     ================================================================== -->
+                <section id="sec-queries" class="admin-panel" style="display: none;">
+                    <div class="dashboard-welcome">
+                        <div>
+                            <h1>All Queries</h1>
+                            <p>Global view of all support queries across the organization.</p>
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="btn-admin-export-queries">
+                            <i data-lucide="download"></i> Export CSV
+                        </button>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table class="saas-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Problem</th>
+                                        <th>Customer</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Created By</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-queries-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================================================================
+                     SECTION 3: USERS MANAGEMENT
+                     ================================================================== -->
+                <section id="sec-users" class="admin-panel" style="display: none;">
+                    <div class="dashboard-welcome">
+                        <div>
+                            <h1>Users</h1>
+                            <p>Manage support staff and administrators.</p>
+                        </div>
+                        <button class="btn btn-primary btn-sm" id="btn-open-add-user-modal">
+                            <i data-lucide="plus"></i> Add User
+                        </button>
+                    </div>
+
+                    <div class="card" style="padding: 0.85rem 1rem; margin-bottom: 1rem;">
+                        <div style="max-width: 320px;" class="search-input-pill">
+                            <i data-lucide="search" class="search-pill-icon" style="width: 15px; height: 15px; stroke: var(--text-muted); margin-left: 0.6rem;"></i>
+                            <input type="text" id="filter-users-input" style="width: 100%; border-radius: var(--radius-sm);" placeholder="Search by name or email..." />
+                        </div>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table class="saas-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Last Login</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================================================================
+                     SECTION 4: ORGANIZATION SETTINGS
+                     ================================================================== -->
+                <section id="sec-organization" class="admin-panel" style="display: none;">
+                    <div class="dashboard-welcome">
+                        <div>
+                            <h1>Organization Settings</h1>
+                            <p>Manage company information and system branding.</p>
+                        </div>
+                    </div>
+
+                    <div class="card" style="max-width: 800px;">
+                        <!-- Settings Tabs -->
+                        <div class="tabs-nav">
+                            <button type="button" class="tab-btn active" data-tab-pane="pane-org-general">Organization</button>
+                            <button type="button" class="tab-btn" data-tab-pane="pane-org-branding">Branding</button>
+                            <button type="button" class="tab-btn" data-tab-pane="pane-org-preferences">Preferences</button>
+                        </div>
+
+                        <form id="form-org-settings">
+                            <!-- Tab 1: Organization General -->
+                            <div class="tab-pane active" id="pane-org-general">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div class="form-group">
+                                        <label class="form-label required" for="org-name-input">Organization Name</label>
+                                        <input type="text" id="org-name-input" class="form-control" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label required" for="org-email-input">Organization Email</label>
+                                        <input type="email" id="org-email-input" class="form-control" required />
+                                    </div>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div class="form-group">
+                                        <label class="form-label" for="org-support-email-input">Support Email</label>
+                                        <input type="email" id="org-support-email-input" class="form-control" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="org-phone-input">Phone Number</label>
+                                        <input type="text" id="org-phone-input" class="form-control" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="org-address-input">Address</label>
+                                    <input type="text" id="org-address-input" class="form-control" />
+                                </div>
+                            </div>
+
+                            <!-- Tab 2: Branding Live Preview -->
+                            <div class="tab-pane" id="pane-org-branding">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div class="form-group">
+                                        <label class="form-label required" for="org-sysname-input">System Name</label>
+                                        <input type="text" id="org-sysname-input" class="form-control" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="org-logo-input">Organization Logo URL</label>
+                                        <input type="url" id="org-logo-input" class="form-control" placeholder="https://example.com/logo.png" />
+                                    </div>
+                                </div>
+
+                                <!-- Live Preview Box -->
+                                <div class="branding-preview-box">
+                                    <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                        Live Branding Preview
+                                    </div>
+                                    <div class="branding-preview-header">
+                                        <div class="preview-logo-badge" id="preview-logo">QR</div>
+                                        <div>
+                                            <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary);" id="preview-sys-name">Query Resolver</div>
+                                            <div style="font-size: 0.8rem; color: var(--text-muted);" id="preview-org-name">ABC Support Services</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tab 3: Preferences -->
+                            <div class="tab-pane" id="pane-org-preferences">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div class="form-group">
+                                        <label class="form-label" for="org-timezone-select">Time Zone</label>
+                                        <select id="org-timezone-select" class="form-control">
+                                            <option value="UTC">UTC</option>
+                                            <option value="America/New_York">America/New_York (EST)</option>
+                                            <option value="Europe/London">Europe/London (GMT)</option>
+                                            <option value="Asia/Karachi">Asia/Karachi (PKT)</option>
+                                            <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                                            <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                                            <option value="Asia/Singapore">Asia/Singapore (SGT)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="org-dateformat-select">Date Format</label>
+                                        <select id="org-dateformat-select" class="form-control">
+                                            <option value="DD-MMM-YYYY">DD-MMM-YYYY (e.g. 10-Oct-2026)</option>
+                                            <option value="YYYY-MM-DD">YYYY-MM-DD (e.g. 2026-10-10)</option>
+                                            <option value="MM/DD/YYYY">MM/DD/YYYY (e.g. 10/10/2026)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary" id="btn-save-org-settings">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- ==================================================================
+                     SECTION 5: SYSTEM & QUERY SETTINGS
+                     ================================================================== -->
+                <section id="sec-settings" class="admin-panel" style="display: none;">
+                    <div class="dashboard-welcome">
+                        <div>
+                            <h1>Query Settings</h1>
+                            <p>Configure default ticket intake, priority levels and workflow statuses.</p>
+                        </div>
+                    </div>
+
+                    <div class="card" style="max-width: 800px;">
+                        <form id="form-system-settings">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label class="form-label required" for="sys-default-status">Default Query Status</label>
+                                    <select id="sys-default-status" class="form-control">
+                                        <option value="Open">Open</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Temporarily Resolved">Temporarily Resolved</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required" for="sys-default-priority">Default Query Priority</label>
+                                    <select id="sys-default-priority" class="form-control">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium" selected>Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Critical">Critical</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="sys-available-statuses">Available Statuses (Comma Separated)</label>
+                                <input type="text" id="sys-available-statuses" class="form-control" value="Open, In Progress, Temporarily Resolved, Escalated, Closed" />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="sys-available-priorities">Available Priorities (Comma Separated)</label>
+                                <input type="text" id="sys-available-priorities" class="form-control" value="Low, Medium, High, Critical" />
+                            </div>
+
+                            <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary" id="btn-save-sys-settings">
+                                    Save System Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- ==================================================================
+                     SECTION 6: DATABASE & BACKEND CONFIGURATION
+                     ================================================================== -->
+                <section id="sec-database" class="admin-panel" style="display: none;">
+                    <div class="dashboard-welcome">
+                        <div>
+                            <h1>Database Configuration</h1>
+                            <p>Configure Supabase cloud backend, test connectivity, review schemas, and manage data exports.</p>
+                        </div>
+                        <div id="db-header-status-badge" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.85rem; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600; background: #fef3c7; color: #b45309; border: 1px solid #fde68a;">
+                            <span class="db-pulse-dot dot-local" id="db-header-pulse-dot"></span>
+                            <span id="db-header-status-text">Local Storage Mode</span>
+                        </div>
+                    </div>
+
+                    <div class="card" style="max-width: 880px;">
+                        <!-- Settings Tabs -->
+                        <div class="tabs-nav">
+                            <button type="button" class="tab-btn active" data-tab-pane="pane-db-connection">
+                                <i data-lucide="plug" style="width: 14px; height: 14px; margin-right: 4px;"></i> Connection Settings
+                            </button>
+                            <button type="button" class="tab-btn" data-tab-pane="pane-db-exports">
+                                <i data-lucide="hard-drive" style="width: 14px; height: 14px; margin-right: 4px;"></i> Data & Storage
+                            </button>
+                            <button type="button" class="tab-btn" data-tab-pane="pane-db-schema">
+                                <i data-lucide="file-code-2" style="width: 14px; height: 14px; margin-right: 4px;"></i> SQL Schema & Setup
+                            </button>
+                        </div>
+
+                        <!-- TAB 1: CONNECTION SETTINGS -->
+                        <div class="tab-pane active" id="pane-db-connection">
+                            <!-- Live Connection Status Card -->
+                            <div style="background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.15rem 1.25rem; margin-bottom: 1.5rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span class="db-pulse-dot dot-local" id="db-live-indicator-dot"></span>
+                                        <strong style="font-size: 0.95rem; color: var(--text-primary);" id="db-live-status-title">Current Storage Mode: Local Fallback</strong>
+                                    </div>
+                                    <span class="badge" id="db-live-badge" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a;">Offline / Local</span>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-size: 0.825rem;">
+                                    <div>
+                                        <div style="color: var(--text-muted); font-size: 0.725rem; text-transform: uppercase; font-weight: 600;">Active Endpoint</div>
+                                        <div id="db-active-url-display" style="font-family: ui-monospace, monospace; color: var(--text-primary); margin-top: 0.2rem; word-break: break-all;">Not configured (Browser LocalStorage)</div>
+                                    </div>
+                                    <div>
+                                        <div style="color: var(--text-muted); font-size: 0.725rem; text-transform: uppercase; font-weight: 600;">Auth / Key Mode</div>
+                                        <div id="db-active-key-display" style="color: var(--text-primary); margin-top: 0.2rem;">Public Anon Key (Safe for Browser)</div>
+                                    </div>
+                                    <div>
+                                        <div style="color: var(--text-muted); font-size: 0.725rem; text-transform: uppercase; font-weight: 600;">Multi-Tenant Org UUID</div>
+                                        <div style="font-family: ui-monospace, monospace; color: var(--text-primary); margin-top: 0.2rem;">00000000-0000-0000-0000-000000000001</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Credentials Form -->
+                            <form id="form-db-config">
+                                <div class="form-group">
+                                    <label class="form-label required" for="db-config-url">Supabase Project URL</label>
+                                    <input 
+                                        type="url" 
+                                        id="db-config-url" 
+                                        class="form-control" 
+                                        placeholder="https://xyzprojectref.supabase.co" 
+                                        autocomplete="off"
+                                        required 
+                                    />
+                                    <div class="form-help">Found in your Supabase project under <strong>Project Settings → API → Project URL</strong>.</div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required" for="db-config-anon-key">Supabase Public Anon Key</label>
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <input 
+                                            type="password" 
+                                            id="db-config-anon-key" 
+                                            class="form-control" 
+                                            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+                                            style="padding-right: 2.75rem; font-family: ui-monospace, monospace;" 
+                                            autocomplete="off"
+                                            required 
+                                        />
+                                        <button 
+                                            type="button" 
+                                            id="btn-toggle-key-visibility" 
+                                            class="icon-btn" 
+                                            style="position: absolute; right: 8px; width: 30px; height: 30px;"
+                                            title="Toggle Key Visibility">
+                                            <i data-lucide="eye" style="width: 15px; height: 15px;"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-help">Use your project's public <strong>anon / public</strong> API key. Safe for browser usage. Never enter the secret <code>service_role</code> key.</div>
+                                </div>
+
+                                <!-- Test Connection Feedback Message Container -->
+                                <div id="db-connection-result-box" style="display: none; padding: 0.85rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                                    <div style="display: flex; align-items: flex-start; gap: 0.6rem;">
+                                        <i id="db-result-icon" data-lucide="info" style="width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;"></i>
+                                        <div id="db-result-message" style="line-height: 1.4;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Button Row -->
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button type="button" class="btn btn-outline btn-sm" id="btn-test-db-connection">
+                                            <i data-lucide="activity"></i> Test Connection
+                                        </button>
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btn-clear-db-config">
+                                            <i data-lucide="trash-2"></i> Disconnect / Clear
+                                        </button>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm" id="btn-save-db-config">
+                                        <i data-lucide="save"></i> Save & Connect
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Security Assurance Callout -->
+                            <div style="margin-top: 1.5rem; padding: 0.85rem 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); font-size: 0.8rem; color: #1e40af; display: flex; align-items: flex-start; gap: 0.6rem;">
+                                <i data-lucide="shield-check" style="width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;"></i>
+                                <div style="line-height: 1.45;">
+                                    <strong>Production Security Note:</strong> Query Resolver connects directly to Supabase via Row Level Security (RLS) policies. Credentials entered here persist securely in your browser's local session for this domain.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: DATA & STORAGE -->
+                        <div class="tab-pane" id="pane-db-exports">
+                            <!-- Storage Stats Row -->
+                            <div class="stats-row" style="margin-bottom: 1.25rem;">
+                                <div class="stat-tile">
+                                    <div class="stat-tile-top"><span class="stat-tile-label">Total Queries</span></div>
+                                    <div class="stat-tile-val" id="db-stat-queries">0</div>
+                                </div>
+                                <div class="stat-tile">
+                                    <div class="stat-tile-top"><span class="stat-tile-label">Total Notes</span></div>
+                                    <div class="stat-tile-val" id="db-stat-notes">0</div>
+                                </div>
+                                <div class="stat-tile">
+                                    <div class="stat-tile-top"><span class="stat-tile-label">Total Users</span></div>
+                                    <div class="stat-tile-val" id="db-stat-users">0</div>
+                                </div>
+                                <div class="stat-tile">
+                                    <div class="stat-tile-top"><span class="stat-tile-label">Audit Logs</span></div>
+                                    <div class="stat-tile-val" id="db-stat-logs">0</div>
+                                </div>
+                                <div class="stat-tile" style="grid-column: span 2;">
+                                    <div class="stat-tile-top"><span class="stat-tile-label">Database Status</span></div>
+                                    <div style="font-size: 0.95rem; font-weight: 700; color: #047857; margin-top: 0.35rem;" id="db-stat-health">
+                                        Active & Secure
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Notice Banner -->
+                            <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.85rem 1rem; border-radius: var(--radius-md); font-size: 0.85rem; color: #1e40af; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i data-lucide="info" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+                                <div><strong>Notice:</strong> Export your data before discontinuing the temporary 2-week system. Database credentials and service keys are protected.</div>
+                            </div>
+
+                            <!-- 4 Export Cards -->
+                            <div class="backup-grid">
+                                <div class="backup-card">
+                                    <div>
+                                        <div class="backup-card-icon"><i data-lucide="file-spreadsheet"></i></div>
+                                        <h3 class="backup-card-title">Queries</h3>
+                                        <p class="backup-card-desc">Export all query records into CSV format with full details.</p>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm" id="btn-export-queries-csv">
+                                        <i data-lucide="download"></i> Export CSV
+                                    </button>
+                                </div>
+
+                                <div class="backup-card">
+                                    <div>
+                                        <div class="backup-card-icon"><i data-lucide="file-text"></i></div>
+                                        <h3 class="backup-card-title">Notes</h3>
+                                        <p class="backup-card-desc">Export complete chronological note history with authors and timestamps.</p>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm" id="btn-export-notes-csv">
+                                        <i data-lucide="download"></i> Export CSV
+                                    </button>
+                                </div>
+
+                                <div class="backup-card">
+                                    <div>
+                                        <div class="backup-card-icon"><i data-lucide="history"></i></div>
+                                        <h3 class="backup-card-title">Audit Logs</h3>
+                                        <p class="backup-card-desc">Export security activity stream, logins, and status change records.</p>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm" id="btn-export-audit-csv">
+                                        <i data-lucide="download"></i> Export CSV
+                                    </button>
+                                </div>
+
+                                <div class="backup-card featured">
+                                    <div>
+                                        <div class="backup-card-icon"><i data-lucide="archive"></i></div>
+                                        <h3 class="backup-card-title">All Data</h3>
+                                        <p class="backup-card-desc">Export complete system data archive (JSON) for permanent backup.</p>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" id="btn-export-all-backup">
+                                        <i data-lucide="download"></i> Export Everything
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: SQL SCHEMA & SETUP -->
+                        <div class="tab-pane" id="pane-db-schema">
+                            <div style="margin-bottom: 1.25rem;">
+                                <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">Required Supabase Tables</h3>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">Ensure these 5 tables are created in your Supabase project using <code>schema.sql</code>.</p>
+                            </div>
+
+                            <div class="schema-table-grid">
+                                <div class="schema-table-card">
+                                    <div class="table-icon"><i data-lucide="building-2"></i></div>
+                                    <div>
+                                        <div class="table-name">public.organizations</div>
+                                        <div class="table-desc">Stores organization settings, branding, timezone & default workflow.</div>
+                                    </div>
+                                </div>
+
+                                <div class="schema-table-card">
+                                    <div class="table-icon"><i data-lucide="users"></i></div>
+                                    <div>
+                                        <div class="table-name">public.profiles</div>
+                                        <div class="table-desc">User accounts, roles (Admin/Support), active flags, and auth sync.</div>
+                                    </div>
+                                </div>
+
+                                <div class="schema-table-card">
+                                    <div class="table-icon"><i data-lucide="ticket"></i></div>
+                                    <div>
+                                        <div class="table-name">public.queries</div>
+                                        <div class="table-desc">Customer tickets, problem statements, statuses, priorities & workarounds.</div>
+                                    </div>
+                                </div>
+
+                                <div class="schema-table-card">
+                                    <div class="table-icon"><i data-lucide="file-text"></i></div>
+                                    <div>
+                                        <div class="table-name">public.notes</div>
+                                        <div class="table-desc">Append-only chronological note trail with immutable author and timestamps.</div>
+                                    </div>
+                                </div>
+
+                                <div class="schema-table-card">
+                                    <div class="table-icon"><i data-lucide="shield-check"></i></div>
+                                    <div>
+                                        <div class="table-name">public.audit_logs</div>
+                                        <div class="table-desc">Security events, logins, role adjustments, and status changes.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; margin-top: 1.25rem;">
+                                <strong style="font-size: 0.85rem; color: var(--text-primary);">Supabase SQL Setup Quick-Script</strong>
+                                <button type="button" class="btn btn-outline btn-sm" id="btn-copy-schema-sql">
+                                    <i data-lucide="copy"></i> Copy SQL Script
+                                </button>
+                            </div>
+
+                            <pre class="sql-code-block" id="sql-schema-preview">-- Run in Supabase Dashboard -> SQL Editor:
+-- Complete schema file located in: /supabase/schema.sql
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE SEQUENCE IF NOT EXISTS query_number_seq START WITH 1001 INCREMENT BY 1;
+
+-- Organizations
+CREATE TABLE IF NOT EXISTS public.organizations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL DEFAULT 'Query Resolver Organization',
+    system_name TEXT NOT NULL DEFAULT 'Query Resolver',
+    support_email TEXT DEFAULT 'support@example.org',
+    default_status TEXT NOT NULL DEFAULT 'Open',
+    default_priority TEXT NOT NULL DEFAULT 'Medium',
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
+);
+
+-- Profiles (Users)
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    full_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'support',
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
+);
+
+-- Queries
+CREATE TABLE IF NOT EXISTS public.queries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    query_number TEXT NOT NULL DEFAULT ('QR-' || nextval('query_number_seq'::regclass)::text),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    customer_name TEXT NOT NULL,
+    problem TEXT NOT NULL,
+    temporary_resolution TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'Open',
+    priority TEXT NOT NULL DEFAULT 'Medium',
+    created_by TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
+);
+
+-- Notes (Permanent Append-Only)
+CREATE TABLE IF NOT EXISTS public.notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    query_id UUID NOT NULL REFERENCES public.queries(id) ON DELETE CASCADE,
+    author_id UUID,
+    author_name TEXT NOT NULL,
+    note TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
+);
+
+-- Audit Logs
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    user_name TEXT NOT NULL,
+    action TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    description TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
+);</pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================================================================
+                     SECTION 7: AUDIT LOGS
+                     ================================================================== -->
+                <section id="sec-audit" class="admin-panel" style="display: none;">
+                    <div class="dashboard-welcome">
+                        <div>
+                            <h1>Audit Logs</h1>
+                            <p>Track important actions automatically.</p>
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="btn-export-audit-table">
+                            <i data-lucide="download"></i> Export CSV
+                        </button>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table class="saas-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date/Time</th>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Entity</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-audit-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+
+    </div>
+
+    <!-- ==============================================================================
+         MODAL: ADD NEW USER
+         ============================================================================== -->
+    <div class="modal-overlay" id="modal-add-user">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">+ Add New User</h3>
+                <button type="button" class="modal-close">&times;</button>
+            </div>
+            <form id="form-add-user">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label required" for="new-user-name">Full Name</label>
+                        <input type="text" id="new-user-name" class="form-control" placeholder="e.g. John Smith" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required" for="new-user-email">Email Address</label>
+                        <input type="email" id="new-user-email" class="form-control" placeholder="john.smith@company.com" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required" for="new-user-password">Initial Password</label>
+                        <input type="password" id="new-user-password" class="form-control" placeholder="Minimum 6 characters" minlength="6" required />
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label required" for="new-user-role">Role</label>
+                        <select id="new-user-role" class="form-control">
+                            <option value="support" selected>Support</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                        <div class="form-help">Support users can manage queries; Admins can manage users & organization settings.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm modal-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm" id="btn-submit-new-user">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script type="module" src="../js/admin.js"></script>
+</body>
+</html>
