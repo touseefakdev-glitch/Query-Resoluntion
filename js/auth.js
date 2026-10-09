@@ -11,6 +11,17 @@ const STORAGE_SESSION_PROFILE = 'qr_auth_profile_v2';
 // Built-in test accounts for immediate evaluation before connecting Supabase
 const TEST_ACCOUNTS = [
     {
+        id: 'usr-admin-tauseef',
+        email: 'tauseef@jandtsupplies.ca',
+        password: 'passord@123',
+        alternatePassword: 'password@123',
+        full_name: 'Tauseef',
+        role: 'admin',
+        is_active: true,
+        organization_id: AppConfig.getOrgId(),
+        created_at: new Date().toISOString()
+    },
+    {
         id: 'usr-admin-001',
         email: 'admin@abcservices.com',
         password: 'admin',
@@ -116,10 +127,11 @@ export const AuthService = {
 
         // 2. Fallback local / demo authentication
         const match = TEST_ACCOUNTS.find(a => a.email.toLowerCase() === cleanEmail);
-        if (match && match.password === password) {
+        if (match && (match.password === password || match.alternatePassword === password)) {
             if (!match.is_active) throw new Error('Account deactivated.');
             const profile = { ...match, last_login: new Date().toISOString() };
             delete profile.password;
+            delete profile.alternatePassword;
             this.setProfile(profile);
             return profile;
         }

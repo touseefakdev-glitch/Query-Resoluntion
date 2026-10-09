@@ -6,6 +6,7 @@
 
 -- 1. EXTENSIONS & SEQUENCES
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE SEQUENCE IF NOT EXISTS query_number_seq START WITH 1001 INCREMENT BY 1;
 
@@ -304,3 +305,100 @@ VALUES (
     'Medium'
 )
 ON CONFLICT (id) DO NOTHING;
+ 
+-- ==============================================================================
+-- 7. SEED DEFAULT ADMIN USER
+-- ==============================================================================
+DO $$
+DECLARE
+    seed_user_id UUID := '00000000-0000-0000-0000-000000000099'::uuid;
+    default_org_id UUID := '00000000-0000-0000-0000-000000000001'::uuid;
+BEGIN
+    -- 7.1 Insert into auth.users if not already registered
+    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'tauseef@jandtsupplies.ca') THEN
+        INSERT INTO auth.users (
+            id,
+            instance_id,
+            email,
+            encrypted_password,
+            email_confirmed_at,
+            raw_app_meta_data,
+            raw_user_meta_data,
+            created_at,
+            updated_at,
+            role,
+            aud,
+            confirmation_token
+        ) VALUES (
+            seed_user_id,
+            '00000000-0000-0000-0000-000000000000',
+            'tauseef@jandtsupplies.ca',
+            crypt('passord@123', gen_salt('bf')),
+            now(),
+            '{"provider":"email","providers":["email"]}'::jsonb,
+            '{"full_name":"Tauseef","role":"admin"}'::jsonb,
+            now(),
+            now(),
+            'authenticated',
+            'authenticated',
+            ''
+        );
+
+        -- 7.2 Insert corresponding identity record for Supabase GoTrue Auth
+        INSERT INTO auth.identities (
+            id,
+            user_id,
+            identity_data,
+            provider,
+            provider_id,
+            last_sign_in_at,
+            created_at,
+            updated_at
+        ) VALUES (
+            gen_random_uuid(),
+            seed_user_id,
+            format('{"sub":"%s","email":"%s"}', seed_user_id, 'tauseef@jandtsupplies.ca')::jsonb,
+            'email',
+            seed_user_id::text,
+            now(),
+            now(),
+            now()
+        )
+        ON CONFLICT DO NOTHING;
+    ELSE
+        -- If already exists, update password to passord@123 and ensure confirmed
+        UPDATE auth.users
+        SET encrypted_password = crypt('passord@123', gen_salt('bf')),
+            email_confirmed_at = COALESCE(email_confirmed_at, now()),
+            raw_user_meta_data = jsonb_set(COALESCE(raw_user_meta_data, '{}'::jsonb), '{role}', '"admin"')
+        WHERE email = 'tauseef@jandtsupplies.ca';
+    END IF;
+
+    -- 7.3 Ensure public.profiles record has role = admin
+    INSERT INTO public.profiles (
+        id,
+        full_name,
+        email,
+        role,
+        is_active,
+        organization_id,
+        created_at,
+        updated_at
+    )
+    SELECT 
+        id,
+        'Tauseef',
+        'tauseef@jandtsupplies.ca',
+        'admin',
+        true,
+        default_org_id,
+        now(),
+        now()
+    FROM auth.users
+    WHERE email = 'tauseef@jandtsupplies.ca'
+    ON CONFLICT (id) DO UPDATE SET
+        role = 'admin',
+        full_name = 'Tauseef',
+        is_active = true,
+        updated_at = now();
+END $$;
