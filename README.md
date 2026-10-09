@@ -87,34 +87,27 @@ QUERY RESOLVER/
 
 ---
 
-### Step 3: Configure Supabase Authentication & Create the First Admin
-1. In Supabase, go to **Authentication** -> **Users** -> **"Add user"** -> **"Create user"**.
-2. Enter an email (e.g. `admin@yourcompany.com`) and password.
-3. Copy the newly created user's **User UID**.
-4. Go to **SQL Editor** and insert the admin profile linking to that user:
-   ```sql
-   INSERT INTO public.profiles (id, full_name, email, role, is_active, organization_id)
-   VALUES (
-       'PASTE_USER_UID_HERE',
-       'System Administrator',
-       'admin@yourcompany.com',
-       'admin',
-       true,
-       '00000000-0000-0000-0000-000000000001'
-   );
-   ```
+### Step 3: Configure Supabase Authentication (Important for Production)
+1. In Supabase Dashboard, navigate to **Authentication** -> **Providers** -> **Email**.
+2. **Turn OFF "Confirm email"** and click **Save**.
+   > *Why?* Supabase free tier rate-limits confirmation emails to 3-4 per hour. Disabling this allows your administrators to create unlimited staff accounts without hitting `email rate limit exceeded`, and users can sign in immediately.
+3. (Optional) To create your first admin directly in Supabase:
+   - Go to **Authentication** -> **Users** -> **"Add user"** -> **"Create user"**.
+   - Enter an email (e.g. `admin@yourcompany.com`) and password.
+   - In **User Metadata**, add `{"full_name": "Admin Director", "role": "admin"}`.
+   - The database trigger (`on_auth_user_created`) automatically generates the profile with admin privileges!
 
 ---
 
 ### Step 4: Connect the Frontend to Supabase
 1. In Supabase, go to **Project Settings** -> **API**.
 2. Copy the **Project URL** and the **Project API Keys** -> `anon` / `public` key.
-3. Open [`js/config.js`](file:///c:/Users/TIW%20COMPUTER/Desktop/QUERY%20RESOLVER/js/config.js) and configure the defaults:
+3. Open [`js/config.js`](file:///c:/Users/TIW%20COMPUTER/Desktop/QUERY%20RESOLVER/js/config.js) and set your live Supabase credentials:
    ```javascript
    const DEFAULT_SUPABASE_URL = 'https://your-project.supabase.co';
    const DEFAULT_SUPABASE_ANON_KEY = 'your-anon-key-here';
    ```
-*(Note: You can also evaluate the system locally without keys; built-in local store with demo accounts is provided out of the box).*
+   *(Alternatively, users can enter credentials via the connection modal in the Admin Dashboard, which stores them safely in local storage).*
 
 ---
 

@@ -144,6 +144,52 @@ CREATE TRIGGER trg_profiles_updated_at
 BEFORE UPDATE ON public.profiles
 FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
+-- Auto-sync auth.users to public.profiles on signup / admin creation
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+DECLARE
+    default_org UUID;
+BEGIN
+    SELECT id INTO default_org FROM public.organizations LIMIT 1;
+    IF default_org IS NULL THEN
+        default_org := '00000000-0000-0000-0000-000000000001'::uuid;
+    END IF;
+
+    INSERT INTO public.profiles (
+        id,
+        full_name,
+        email,
+        role,
+        is_active,
+        organization_id,
+        created_at,
+        updated_at
+    )
+    VALUES (
+        NEW.id,
+        COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
+        NEW.email,
+        COALESCE(NEW.raw_user_meta_data->>'role', 'support'),
+        true,
+        COALESCE((NEW.raw_user_meta_data->>'organization_id')::uuid, default_org),
+        timezone('utc'::text, now()),
+        timezone('utc'::text, now())
+    )
+    ON CONFLICT (id) DO UPDATE SET
+        full_name = EXCLUDED.full_name,
+        email = EXCLUDED.email,
+        role = EXCLUDED.role,
+        updated_at = timezone('utc'::text, now());
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
 -- ==============================================================================
 -- 5. ROW LEVEL SECURITY (RLS) POLICIES
 -- ==============================================================================
